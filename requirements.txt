@@ -1,0 +1,9 @@
+# Core
+Django==2.0.3
+djangorestframework==3.7.7
+django_extensions==2.0.3
+
+# Tests
+pytest==3.4.2
+pytest-django==3.1.2
+model_mommy==1.5.1

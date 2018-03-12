@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from .records.views import RecordCall
+
 urlpatterns = [
+    path('record/', RecordCall.as_view()),
     path('admin/', admin.site.urls),
 ]

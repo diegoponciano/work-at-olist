@@ -21,18 +21,29 @@ def get_record_serializer(data):
         raise serializers.ValidationError('errr')
 
 
-class StartRecordSerializer(serializers.ModelSerializer):
+class RecordSerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
-    timestamp = serializers.DateTimeField(write_only=True)
+    call_id = serializers.CharField(validators=[])
 
     class Meta:
         model = CallRecord
         fields = '__all__'
 
+    def create(self, validated_data):
+        validated_data.pop('type', None)
+        try:
+            record = CallRecord.objects.get(call_id=validated_data['call_id'])
+            return self.update(record, validated_data)
+        except CallRecord.DoesNotExist:
+            return CallRecord.objects.create(**validated_data)
 
-class EndRecordSerializer(serializers.ModelSerializer):
-    type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
-    timestamp = serializers.DateTimeField(write_only=True)
+
+class StartRecordSerializer(RecordSerializer):
+    timestamp = serializers.DateTimeField(source='started_at', write_only=True)
+
+
+class EndRecordSerializer(RecordSerializer):
+    timestamp = serializers.DateTimeField(source='ended_at', write_only=True)
 
     class Meta:
         model = CallRecord

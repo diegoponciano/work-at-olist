@@ -33,9 +33,27 @@ class TestRecordSerializer:
     def test_end_call_does_not_require_phones(self):
         data = {
             'type': 'end',
+            'timestamp': now().isoformat(),
+        }
+        serializer = get_record_serializer(data)(data=data)
+
+        assert not serializer.is_valid()
+
+        data = {
+            'type': 'end',
             'call_id': str(uuid.uuid4()),
             'timestamp': now().isoformat(),
         }
         serializer = get_record_serializer(data)(data=data)
 
         assert serializer.is_valid()
+
+    def test_invalid_call_type(self):
+        data = {
+            'type': 'invalid',
+            'call_id': str(uuid.uuid4()),
+            'timestamp': now().isoformat(),
+        }
+        serializer = get_record_serializer(data)(data=data)
+
+        assert not serializer.is_valid()

@@ -1,5 +1,6 @@
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import serializers
+from rest_framework.fields import empty
 
 from .models import CallRecord
 
@@ -18,7 +19,7 @@ def get_record_serializer(data):
     try:
         return serializer_types[data['type']]
     except (KeyError, MultiValueDictKeyError):
-        raise serializers.ValidationError('errr')
+        return InvalidRecordSerializer
 
 
 class RecordSerializer(serializers.ModelSerializer):
@@ -36,6 +37,12 @@ class RecordSerializer(serializers.ModelSerializer):
             return self.update(record, validated_data)
         except CallRecord.DoesNotExist:
             return CallRecord.objects.create(**validated_data)
+
+
+class InvalidRecordSerializer(RecordSerializer):
+    def run_validation(self, data=empty):
+        raise serializers.ValidationError(
+            {'type': 'The provided type in invalid.'})
 
 
 class StartRecordSerializer(RecordSerializer):

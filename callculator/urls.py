@@ -16,9 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from .records.views import RecordCall
+from .records.views import RecordCall, CallDetails
 
 urlpatterns = [
     path('record/', RecordCall.as_view()),
+    path('record/<pk>/', CallDetails.as_view()),
     path('admin/', admin.site.urls),
 ]

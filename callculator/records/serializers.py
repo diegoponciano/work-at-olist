@@ -23,7 +23,6 @@ def get_record_serializer(data):
 
 
 class RecordSerializer(serializers.ModelSerializer):
-    type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
     call_id = serializers.CharField(validators=[])
 
     class Meta:
@@ -46,10 +45,12 @@ class InvalidRecordSerializer(RecordSerializer):
 
 
 class StartRecordSerializer(RecordSerializer):
+    type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
     timestamp = serializers.DateTimeField(source='started_at', write_only=True)
 
 
 class EndRecordSerializer(RecordSerializer):
+    type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
     timestamp = serializers.DateTimeField(source='ended_at', write_only=True)
 
     class Meta:

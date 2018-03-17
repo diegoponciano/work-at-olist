@@ -1,7 +1,19 @@
 from rest_framework import generics, status
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from .serializers import get_record_serializer
+from .models import CallRecord
+from .serializers import get_record_serializer, RecordSerializer
+
+
+class CallDetails(generics.GenericAPIView):
+    def get(self, request, pk, format=None):
+        try:
+            instance = CallRecord.objects.get(call_id=pk)
+            serializer = RecordSerializer(instance=instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except CallRecord.DoesNotExist:
+            raise NotFound
 
 
 class RecordCall(generics.GenericAPIView):

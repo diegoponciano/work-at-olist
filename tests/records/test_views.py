@@ -43,6 +43,19 @@ class TestRecordViews:
         assert parse(
             response.data['ended_at']) == parse(self.end['timestamp'])
 
+    def test_should_retrieve_call_record(self, client):
+        self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
+
+        client.post('/record/', self.start)
+        client.post('/record/', self.end)
+        response = client.get('/record/%s/' % self.start['call_id'])
+
+        assert response.status_code == 200
+        assert parse(
+            response.data['started_at']) == parse(self.start['timestamp'])
+        assert parse(
+            response.data['ended_at']) == parse(self.end['timestamp'])
+
     def test_should_calculate_duration(self, client):
         self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
 
@@ -50,6 +63,14 @@ class TestRecordViews:
         response = client.post('/record/', self.end)
 
         assert response.data['duration'] == '00:30:00'
+
+    def test_should_calculate_standard_price(self, client):
+        self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
+
+        client.post('/record/', self.start)
+        response = client.post('/record/', self.end)
+
+        assert response.data['price'] == str(round(0.36 + 0.09*30, 2))
 
     def test_should_calculate_example_price(self, client):
         self.start['call_id'] = self.end['call_id'] = uuid.uuid4()

@@ -27,15 +27,17 @@ class TestRecord:
 @pytest.mark.django_db
 class TestStardardMinutesCalculation:
     def test_standard_minutes_at_same_day(self):
-        start = parse('01-01-2018 21:57:13Z')
-        end = parse('01-01-2018 22:10:56Z')
-        record = CallRecord(started_at=start, ended_at=end,
-                            call_id=uuid.uuid4())
-
-        assert record.standard_minutes() == 2
+        record = CallRecord(call_id=uuid.uuid4())
 
         record.started_at = parse('01-01-2018 21:00:00Z')
+        record.ended_at = parse('01-01-2018 22:10:56Z')
         assert record.standard_minutes() == 60
+
+        record.started_at = parse('01-01-2018 21:57:13Z')
+        assert record.standard_minutes() == 2
+
+        record.started_at = parse('01-01-2018 22:05:13Z')
+        assert record.standard_minutes() == 0
 
     def test_standard_minutes_on_two_days(self):
         start = parse('01-01-2018 21:57:13Z')

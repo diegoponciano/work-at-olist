@@ -50,3 +50,23 @@ class TestRecordViews:
         response = client.post('/record/', self.end)
 
         assert response.data['duration'] == '00:30:00'
+
+    def test_should_calculate_example_price(self, client):
+        self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
+        self.start['timestamp'] = parse('01-01-2018 21:57:13Z').isoformat()
+        self.end['timestamp'] = parse('01-01-2018 22:10:56Z').isoformat()
+
+        client.post('/record/', self.start)
+        response = client.post('/record/', self.end)
+
+        assert response.data['price'] == '0.54'
+
+    def test_should_calculate_reduced_price(self, client):
+        self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
+        self.start['timestamp'] = parse('01-01-2018 22:07:13Z').isoformat()
+        self.end['timestamp'] = parse('01-01-2018 22:40:56Z').isoformat()
+
+        client.post('/record/', self.start)
+        response = client.post('/record/', self.end)
+
+        assert response.data['price'] == '0.36'

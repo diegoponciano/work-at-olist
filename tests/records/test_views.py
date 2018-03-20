@@ -47,8 +47,24 @@ class TestRecordViews:
 
     def test_should_set_end_datetime(self, client):
         response = client.post('/record/', self.end)
+
         assert parse(
             response.data['ended_at']) == parse(self.end['timestamp'])
+
+    def test_should_finish_only_one_call_record(self, client):
+        records_before = CallRecord.objects.count()
+        self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
+
+        response = client.post('/record/', self.start)
+        assert response.status_code == 201
+
+        response = client.post('/record/', self.end)
+        assert response.status_code == 201
+        assert parse(
+            response.data['started_at']) == parse(self.start['timestamp'])
+        assert parse(
+            response.data['ended_at']) == parse(self.end['timestamp'])
+        assert records_before + 1 == CallRecord.objects.count()
 
     def test_should_retrieve_call_record(self, client):
         self.start['call_id'] = self.end['call_id'] = uuid.uuid4()

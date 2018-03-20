@@ -1,3 +1,5 @@
+from django.utils.timezone import now
+from dateutil.relativedelta import relativedelta
 from rest_framework import generics, status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
@@ -26,3 +28,18 @@ class RecordCall(generics.GenericAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Bills(generics.GenericAPIView):
+    def get(self, request, phone, month_year=None, format=None):
+        if month_year:
+            month, year = map(int, month_year.split('-'))
+        else:
+            previous = now() - relativedelta(months=1)
+            month, year = previous.month, previous.year
+        records = CallRecord.objects.filter(
+            started_at__year=year,
+            started_at__month=month,
+            source=phone)
+        serializer = RecordSerializer(records, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

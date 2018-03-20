@@ -1,7 +1,14 @@
+import decimal
 import pytest
+import pytz
+import random
 import uuid
 from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta as delta
+from django.utils.timezone import now
 from faker import Faker
+
+from callculator.records.models import CallRecord
 
 fake = Faker()
 
@@ -91,3 +98,74 @@ class TestRecordViews:
         response = client.post('/record/', self.end)
 
         assert response.data['price'] == '0.36'
+
+
+def random_price():
+    return decimal.Decimal(random.randrange(10000))/100
+
+
+def random_duration():
+    start = fake.date_time()
+    return (start + delta(minutes=random.randint(0, 1000))) - start
+
+
+NUMBER1 = fake_phonenumber()
+NUMBER2 = fake_phonenumber()
+
+
+def fake_call(start, index):
+    return CallRecord(
+        started_at=start,
+        ended_at=start + delta(minutes=random.randint(0, 1000)),
+        call_id=uuid.uuid4(),
+        source=NUMBER1 if index < 10 else NUMBER2,
+        destination=fake_phonenumber(),
+        duration=random_duration(),
+        price=random_price()
+    )
+
+
+@pytest.mark.django_db
+class TestBills:
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
+        calls = []
+
+        # last but one month calls
+        for i in range(15):
+            calls.append(fake_call(fake.date_time_this_month(
+                after_now=True, tzinfo=pytz.utc) - delta(months=2), i))
+
+        # last month calls
+        for i in range(20):
+            calls.append(fake_call(fake.date_time_this_month(
+                after_now=True, tzinfo=pytz.utc) - delta(months=1), i))
+
+        # this month calls
+        for i in range(10):
+            calls.append(fake_call(fake.date_time_this_month(
+                tzinfo=pytz.utc), i))
+
+        CallRecord.objects.bulk_create(calls)
+
+    def test_should_return_correct_response(self, client):
+        response = client.get('/bills/non-existent/')
+        assert response.status_code == 200
+        assert response.data == []
+
+    def test_should_filter_last_month(self, client):
+        response = client.get('/bills/%s/' % NUMBER1)
+        assert len(response.data) == 10
+
+        response = client.get('/bills/%s/' % NUMBER2)
+        assert len(response.data) == 10
+
+    def test_should_filter_last_but_one_month(self, client):
+        date = now() - delta(months=2)
+        response = client.get(
+            '/bills/%s/%s-%s/' % (NUMBER1, date.month, date.year))
+        assert len(response.data) == 10
+
+        response = client.get(
+            '/bills/%s/%s-%s/' % (NUMBER2, date.month, date.year))
+        assert len(response.data) == 5

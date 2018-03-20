@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+pytest = "==3.4.2"
+pytest-django = "==3.1.2"
+model_mommy = "==1.5.1"
+Faker = "==0.8.11"
+
+[packages]
+Django = "==2.0.3"
+djangorestframework = "==3.7.7"
+coreapi = "==2.3.3"
+python-dateutil = "==2.7.0"
+django-extensions = "==2.0.3"
+ipdb = "==0.11"
+
+[requires]
+python_version = "3.6"

@@ -33,20 +33,20 @@ class TestRecordViews:
     }
 
     def test_should_return_error_with_invalid_data(self, client):
-        response = client.post('/record/')
+        response = client.post('/records/')
         assert response.status_code == 400
 
     def test_should_create_new_record(self, client):
-        response = client.post('/record/', self.start)
+        response = client.post('/records/', self.start)
         assert response.status_code == 201
 
     def test_should_set_start_datetime(self, client):
-        response = client.post('/record/', self.start)
+        response = client.post('/records/', self.start)
         assert parse(
             response.data['started_at']) == parse(self.start['timestamp'])
 
     def test_should_set_end_datetime(self, client):
-        response = client.post('/record/', self.end)
+        response = client.post('/records/', self.end)
 
         assert parse(
             response.data['ended_at']) == parse(self.end['timestamp'])
@@ -55,10 +55,10 @@ class TestRecordViews:
         records_before = CallRecord.objects.count()
         self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
 
-        response = client.post('/record/', self.start)
+        response = client.post('/records/', self.start)
         assert response.status_code == 201
 
-        response = client.post('/record/', self.end)
+        response = client.post('/records/', self.end)
         assert response.status_code == 201
         assert parse(
             response.data['started_at']) == parse(self.start['timestamp'])
@@ -69,9 +69,9 @@ class TestRecordViews:
     def test_should_retrieve_call_record(self, client):
         self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
 
-        client.post('/record/', self.start)
-        client.post('/record/', self.end)
-        response = client.get('/record/%s/' % self.start['call_id'])
+        client.post('/records/', self.start)
+        client.post('/records/', self.end)
+        response = client.get('/records/%s/' % self.start['call_id'])
 
         assert response.status_code == 200
         assert parse(
@@ -82,16 +82,16 @@ class TestRecordViews:
     def test_should_calculate_duration(self, client):
         self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
 
-        client.post('/record/', self.start)
-        response = client.post('/record/', self.end)
+        client.post('/records/', self.start)
+        response = client.post('/records/', self.end)
 
         assert response.data['duration'] == '00:30:00'
 
     def test_should_calculate_standard_price(self, client):
         self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
 
-        client.post('/record/', self.start)
-        response = client.post('/record/', self.end)
+        client.post('/records/', self.start)
+        response = client.post('/records/', self.end)
 
         assert response.data['price'] == str(round(0.36 + 0.09*30, 2))
 
@@ -100,8 +100,8 @@ class TestRecordViews:
         self.start['timestamp'] = parse('01-01-2018 21:57:13Z').isoformat()
         self.end['timestamp'] = parse('01-01-2018 22:10:56Z').isoformat()
 
-        client.post('/record/', self.start)
-        response = client.post('/record/', self.end)
+        client.post('/records/', self.start)
+        response = client.post('/records/', self.end)
 
         assert response.data['price'] == '0.54'
 
@@ -110,8 +110,8 @@ class TestRecordViews:
         self.start['timestamp'] = parse('01-01-2018 22:07:13Z').isoformat()
         self.end['timestamp'] = parse('01-01-2018 22:40:56Z').isoformat()
 
-        client.post('/record/', self.start)
-        response = client.post('/record/', self.end)
+        client.post('/records/', self.start)
+        response = client.post('/records/', self.end)
 
         assert response.data['price'] == '0.36'
 

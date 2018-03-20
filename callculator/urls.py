@@ -20,7 +20,7 @@ from .records.views import RecordCall, CallDetails, Bills
 
 urlpatterns = [
     path('record/', RecordCall.as_view()),
-    path('record/<pk>/', CallDetails.as_view()),
+    path('record/<call_id>/', CallDetails.as_view()),
     path('bills/<phone>/', Bills.as_view()),
     path('bills/<phone>/<month_year>/', Bills.as_view()),
     path('admin/', admin.site.urls),

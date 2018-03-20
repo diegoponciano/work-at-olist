@@ -1,6 +1,4 @@
-from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import serializers
-from rest_framework.fields import empty
 
 from .models import CallRecord
 
@@ -11,51 +9,37 @@ RECORD_TYPES = [
 ]
 
 
-def get_record_serializer(data):
-    serializer_types = {
-        'start': StartRecordSerializer,
-        'end': EndRecordSerializer
-    }
-    try:
-        return serializer_types[data['type']]
-    except (KeyError, MultiValueDictKeyError):
-        return InvalidRecordSerializer
-
-
 class RecordSerializer(serializers.ModelSerializer):
     call_id = serializers.CharField(validators=[])
+    type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
+    timestamp = serializers.DateTimeField(write_only=True)
 
     class Meta:
         model = CallRecord
         fields = '__all__'
+        read_only_fields = ['started_at', 'ended_at', 'duration', 'price']
+
+    def get_extra_kwargs(self, *args, **kwargs):
+        try:
+            if self.initial_data['type'] == 'end':
+                return {
+                    'source': {'read_only': True},
+                    'destination': {'read_only': True}
+                }
+        except (AttributeError, KeyError):
+            pass
+        return super().get_extra_kwargs(*args, **kwargs)
 
     def create(self, validated_data):
-        validated_data.pop('type', None)
+        if validated_data.pop('type') == 'start':
+            validated_data['started_at'] = validated_data.pop('timestamp')
+        else:
+            validated_data['ended_at'] = validated_data.pop('timestamp')
         try:
             record = CallRecord.objects.get(call_id=validated_data['call_id'])
             return self.update(record, validated_data)
         except CallRecord.DoesNotExist:
             return CallRecord.objects.create(**validated_data)
-
-
-class InvalidRecordSerializer(RecordSerializer):
-    def run_validation(self, data=empty):
-        raise serializers.ValidationError(
-            {'type': 'The provided type in invalid.'})
-
-
-class StartRecordSerializer(RecordSerializer):
-    type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
-    timestamp = serializers.DateTimeField(source='started_at', write_only=True)
-
-
-class EndRecordSerializer(RecordSerializer):
-    type = serializers.ChoiceField(choices=RECORD_TYPES, write_only=True)
-    timestamp = serializers.DateTimeField(source='ended_at', write_only=True)
-
-    class Meta:
-        model = CallRecord
-        exclude = ['source', 'destination']
 
 
 class BillSerializer(serializers.ModelSerializer):

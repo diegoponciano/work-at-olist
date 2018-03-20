@@ -3,7 +3,7 @@ import uuid
 from django.utils.timezone import now
 from faker import Faker
 
-from callculator.records.serializers import get_record_serializer
+from callculator.records.serializers import RecordSerializer
 
 fake = Faker()
 
@@ -15,7 +15,7 @@ class TestRecordSerializer:
             'type': 'start',
             'call_id': str(uuid.uuid4())
         }
-        serializer = get_record_serializer(data)(data=data)
+        serializer = RecordSerializer(data=data)
 
         assert not serializer.is_valid()
 
@@ -26,7 +26,7 @@ class TestRecordSerializer:
             'source': fake.msisdn(),
             'destination': fake.msisdn()
         }
-        serializer = get_record_serializer(data)(data=data)
+        serializer = RecordSerializer(data=data)
 
         assert serializer.is_valid()
 
@@ -35,7 +35,7 @@ class TestRecordSerializer:
             'type': 'end',
             'timestamp': now().isoformat(),
         }
-        serializer = get_record_serializer(data)(data=data)
+        serializer = RecordSerializer(data=data)
 
         assert not serializer.is_valid()
 
@@ -44,7 +44,7 @@ class TestRecordSerializer:
             'call_id': str(uuid.uuid4()),
             'timestamp': now().isoformat(),
         }
-        serializer = get_record_serializer(data)(data=data)
+        serializer = RecordSerializer(data=data)
 
         assert serializer.is_valid()
 
@@ -54,6 +54,6 @@ class TestRecordSerializer:
             'call_id': str(uuid.uuid4()),
             'timestamp': now().isoformat(),
         }
-        serializer = get_record_serializer(data)(data=data)
+        serializer = RecordSerializer(data=data)
 
         assert not serializer.is_valid()

@@ -24,6 +24,6 @@ urlpatterns = [
     path('records/<call_id>/', CallDetails.as_view()),
     path('bills/<phone>/', Bills.as_view()),
     path('bills/<phone>/<month_year>/', Bills.as_view()),
-    path('docs/', include_docs_urls(title='Calls Records API')),
+    path('', include_docs_urls(title='Calls Records API')),
     path('admin/', admin.site.urls),
 ]

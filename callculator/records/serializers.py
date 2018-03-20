@@ -56,3 +56,9 @@ class EndRecordSerializer(RecordSerializer):
     class Meta:
         model = CallRecord
         exclude = ['source', 'destination']
+
+
+class BillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CallRecord
+        exclude = ['id', 'source', 'call_id']

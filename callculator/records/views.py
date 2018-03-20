@@ -5,7 +5,8 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from .models import CallRecord
-from .serializers import get_record_serializer, RecordSerializer
+from .serializers import get_record_serializer
+from .serializers import RecordSerializer, BillSerializer
 
 
 class CallDetails(generics.GenericAPIView):
@@ -30,16 +31,16 @@ class RecordCall(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Bills(generics.GenericAPIView):
-    def get(self, request, phone, month_year=None, format=None):
-        if month_year:
-            month, year = map(int, month_year.split('-'))
+class Bills(generics.ListAPIView):
+    serializer_class = BillSerializer
+
+    def get_queryset(self):
+        if 'month_year' in self.kwargs:
+            month, year = map(int, self.kwargs['month_year'].split('-'))
         else:
             previous = now() - relativedelta(months=1)
             month, year = previous.month, previous.year
-        records = CallRecord.objects.filter(
+        return CallRecord.objects.filter(
             started_at__year=year,
             started_at__month=month,
-            source=phone)
-        serializer = RecordSerializer(records, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            source=self.kwargs['phone']).order_by('started_at')

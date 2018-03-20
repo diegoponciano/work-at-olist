@@ -17,6 +17,7 @@ python-dateutil = "==2.7.0"
 django-extensions = "==2.0.3"
 ipdb = "==0.11"
 django-heroku = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.6"

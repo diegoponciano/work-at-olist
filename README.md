@@ -91,7 +91,7 @@ Retrieves a call record using its `call_id`.
             "price": "0.54"
         }
 
-### GET /bills/<phone>/<month-year>/
+### GET /bills/\<phone>/\<month-year>/
 Retrieves the monhly bill for a given `phone` number.
 + Parameters
   + phone: (required) number in `AAXXXXXXXXX` format - The source number of the calls

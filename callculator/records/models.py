@@ -28,9 +28,10 @@ class CallRecord(models.Model):
             day_end = current.replace(hour=settings.END_HOUR, minute=0,
                                       second=0, microsecond=0)
             if current >= day_end:
+                # if the call starts at reduced price time, move to next day
                 current = current.replace(hour=0, minute=0, second=0,
                                           microsecond=0) + timedelta(1)
-                break
+                continue
             if end < day_end:
                 day_end = end
             if current > day_start:

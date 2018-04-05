@@ -1,11 +1,8 @@
 from datetime import timedelta
+from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-
-
-MINUTELY_PRICE = 0.09
-STANDING_CHARGE = 0.36
 
 
 class CallRecord(models.Model):
@@ -26,14 +23,14 @@ class CallRecord(models.Model):
         end = self.ended_at
 
         while current < end:
-            day_start = current.replace(hour=6, minute=0, second=0,
-                                        microsecond=0)
-            day_end = current.replace(hour=22, minute=0, second=0,
-                                      microsecond=0)
+            day_start = current.replace(hour=settings.START_HOUR, minute=0,
+                                        second=0, microsecond=0)
+            day_end = current.replace(hour=settings.END_HOUR, minute=0,
+                                      second=0, microsecond=0)
             if current >= day_end:
                 current = current.replace(hour=0, minute=0, second=0,
                                           microsecond=0) + timedelta(1)
-                continue
+                break
             if end < day_end:
                 day_end = end
             if current > day_start:
@@ -45,7 +42,8 @@ class CallRecord(models.Model):
 
     def calculate_price(self):
         self.price = (
-            STANDING_CHARGE + (self.standard_minutes() * MINUTELY_PRICE))
+            settings.STANDING_CHARGE +
+            (self.standard_minutes() * settings.MINUTELY_PRICE))
 
 
 @receiver(pre_save, sender=CallRecord)

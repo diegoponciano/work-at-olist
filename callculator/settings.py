@@ -124,6 +124,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+MINUTELY_PRICE = float(os.environ.get('CALL_MINUTELY_PRICE', 0.09))
+STANDING_CHARGE = float(os.environ.get('CALL_STANDING_CHARGE', 0.36))
+START_HOUR = int(os.environ.get('CALL_START_HOUR', 6))
+END_HOUR = int(os.environ.get('CALL_END_HOUR', 22))
+
+
 django_heroku.settings(locals())
 if 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(conn_max_age=600,

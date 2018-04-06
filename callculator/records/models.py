@@ -14,8 +14,8 @@ class CallRecord(models.Model):
     duration = models.DurationField(null=True)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
 
-    def calculate_duration(self):
-        self.duration = self.ended_at - self.started_at
+    def is_start_before_end(self):
+        return self.started_at < self.ended_at
 
     def standard_minutes(self):
         minutes = 0
@@ -40,6 +40,9 @@ class CallRecord(models.Model):
             current = current.replace(hour=0, minute=0, second=0,
                                       microsecond=0) + timedelta(1)
         return minutes
+
+    def calculate_duration(self):
+        self.duration = self.ended_at - self.started_at
 
     def calculate_price(self):
         self.price = (

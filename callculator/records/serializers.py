@@ -31,14 +31,20 @@ class RecordSerializer(serializers.ModelSerializer):
         return super().get_extra_kwargs(*args, **kwargs)
 
     def create(self, validated_data):
-        if validated_data.pop('type') == 'start':
-            validated_data['started_at'] = validated_data.pop('timestamp')
-        else:
-            validated_data['ended_at'] = validated_data.pop('timestamp')
+        MOMENTS = {
+            'start': 'started_at',
+            'end': 'ended_at'
+        }
+        moment = validated_data.pop('type')
         try:
             record = CallRecord.objects.get(call_id=validated_data['call_id'])
+            setattr(record, MOMENTS[moment], validated_data.pop('timestamp'))
+            if not record.is_start_before_end():
+                error_msg = 'A call cannot start after the end.'
+                raise serializers.ValidationError(error_msg)
             return self.update(record, validated_data)
         except CallRecord.DoesNotExist:
+            validated_data[MOMENTS[moment]] = validated_data.pop('timestamp')
             return CallRecord.objects.create(**validated_data)
 
 

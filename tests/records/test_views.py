@@ -115,6 +115,16 @@ class TestRecordViews:
 
         assert response.data['price'] == '0.36'
 
+    def test_should_not_allow_start_after_end(self, client):
+        self.start['call_id'] = self.end['call_id'] = uuid.uuid4()
+        self.end['timestamp'] = parse('01-01-2018 22:07:13Z').isoformat()
+        self.start['timestamp'] = parse('01-01-2018 22:40:56Z').isoformat()
+
+        client.post('/records/', self.start)
+        response = client.post('/records/', self.end)
+
+        assert response.status_code == 400
+
 
 def random_price():
     return decimal.Decimal(random.randrange(10000))/100

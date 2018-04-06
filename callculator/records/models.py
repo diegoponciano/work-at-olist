@@ -49,7 +49,6 @@ class CallRecord(models.Model):
             settings.STANDING_CHARGE +
             (self.standard_minutes() * settings.MINUTELY_PRICE))
 
-
 @receiver(pre_save, sender=CallRecord)
 def calculate_price_and_duration(sender, instance, **kwargs):
     if instance.started_at and instance.ended_at:

@@ -9,9 +9,10 @@ RECORD_TYPES = [
 ]
 
 
-def unset(obj, attr):
-    if hasattr(obj, attr):
-        delattr(obj, attr)
+MOMENTS = {
+    'start': 'started_at',
+    'end': 'ended_at'
+}
 
 
 class RecordSerializer(serializers.ModelSerializer):
@@ -22,32 +23,36 @@ class RecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = CallRecord
         read_only_fields = ['started_at', 'ended_at', 'duration', 'price']
+        fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # if call is of type `end` excludes source and destination
+    def get_extra_kwargs(self, *args, **kwargs):
         if getattr(self, 'initial_data', {}).get('type') == 'end':
-            setattr(self.Meta, 'exclude', ['source', 'destination'])
-            unset(self.Meta, 'fields')
-        else:
-            setattr(self.Meta, 'fields', '__all__')
-            unset(self.Meta, 'exclude')
+            return {
+                'source': {'read_only': True},
+                'destination': {'read_only': True}
+            }
+        return super().get_extra_kwargs(*args, **kwargs)
 
-    def create(self, validated_data):
-        MOMENTS = {
-            'start': 'started_at',
-            'end': 'ended_at'
-        }
-        moment = MOMENTS[validated_data.pop('type')]
+    def validate(self, data):
         try:
-            record = CallRecord.objects.get(call_id=validated_data['call_id'])
-            setattr(record, moment, validated_data.pop('timestamp'))
-            if not record.is_start_before_end():
+            instance = CallRecord.objects.get(call_id=data['call_id'])
+            moment = MOMENTS[data['type']]
+            setattr(instance, moment, data['timestamp'])
+            if not instance.is_start_before_end():
                 error_msg = 'A call cannot have started after it ended.'
                 raise serializers.ValidationError({moment: error_msg})
+        except CallRecord.DoesNotExist:
+            pass
+        return data
+
+    def create(self, validated_data):
+        moment = MOMENTS[validated_data.pop('type')]
+        validated_data[moment] = validated_data.pop('timestamp')
+        try:
+            record = CallRecord.objects.get(
+                call_id=validated_data['call_id'])
             return self.update(record, validated_data)
         except CallRecord.DoesNotExist:
-            validated_data[moment] = validated_data.pop('timestamp')
             return CallRecord.objects.create(**validated_data)
 
 
